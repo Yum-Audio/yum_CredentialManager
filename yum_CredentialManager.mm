@@ -3,7 +3,7 @@
 /// For examples see:
 /// https://es1015.tistory.com/243
 
-#if JUCE_MAC
+#if JUCE_MAC || JUCE_IOS
 
 #define Point CarbonDummyPoint
 #define Rectangle CarbonDummyRect
@@ -78,16 +78,24 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
             //Populate it with the data and the attributes we want to use.
              
             keychainItem[(__bridge id)kSecClass] = (__bridge id)kSecClassGenericPassword; // We specify what kind of keychain item this is.
-            keychainItem[(__bridge id)kSecAttrAccessible] = (__bridge id)kSecAttrAccessibleWhenUnlocked; // This item can only be accessed when the user unlocks the device.
+//            keychainItem[(__bridge id)kSecAttrAccessible] = (__bridge id)kSecAttrAccessibleWhenUnlocked; // This item can only be accessed when the user unlocks the device.
+        keychainItem[(__bridge id)kSecAttrAccessible] = (__bridge id)kSecAttrAccessibleAfterFirstUnlock;
             keychainItem[(__bridge id)kSecAttrService] = serviceName;
              
             //Check if this keychain item already exists.
+//
+            keychainItem[(__bridge id)kSecReturnPersistentRef] = (__bridge id)kCFBooleanTrue;
             keychainItem[(__bridge id)kSecReturnData] = (__bridge id)kCFBooleanTrue;
             keychainItem[(__bridge id)kSecReturnAttributes] = (__bridge id)kCFBooleanTrue;
+     
+            //@TODO: this still needs figuring out... how to get all results for the given app?
+            //For now we're only fetching the first result it can find. This is fine for a single app user in most cases
+            keychainItem[(__bridge id)kSecMatchLimitAll] = (__bridge id)kCFBooleanTrue;
+        
+//            CFMutableArrayRef result;
         
             CFDictionaryRef result = nil;
-             
-            OSStatus sts = SecItemCopyMatching((__bridge CFDictionaryRef)keychainItem, (CFTypeRef *)&result);
+        OSStatus sts = SecItemCopyMatching((__bridge CFDictionaryRef)keychainItem, (CFTypeRef *)&result);
              
             NSLog(@"Error Code: %d", (int)sts);
              
@@ -107,17 +115,31 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
 
                 return {};
             }
-         
-            NSDictionary *resultDict = (__bridge_transfer NSDictionary *)result;
         
-            NSString *usr = resultDict[(__bridge id)kSecAttrAccount];
-            
-            NSData *pswd = resultDict[(__bridge id)kSecValueData];
-            NSString *password = [[NSString alloc] initWithData:pswd encoding:NSUTF8StringEncoding];
-         
         Array<UsernameAndPassword> namesAndPasswords;
-        namesAndPasswords.add ({[usr UTF8String], [password UTF8String]});
-        return namesAndPasswords;
+        
+//        CFIndex c = CFArrayGetCount (result);
+//        DBG ("Num entries: " << c );
+//
+//        for (CFIndex i = 0; i < c; i++)
+//        {
+//            auto resultDict = (CFDictionaryRef) CFArrayGetValueAtIndex (result, i);
+////            NSString *user = resultDict[(__bridge id)kSecAttrAccount];
+////            NSString *password = [[NSString alloc] initWithData:resultDict[(__bridge id)kSecValueData]
+////                                                       encoding:NSUTF8StringEncoding];
+////            namesAndPasswords.add ({[user UTF8String], [password UTF8String]});
+//        }
+//
+//
+
+            NSDictionary *resultDict = (NSDictionary *)result;
+            NSString *user = resultDict[(__bridge id)kSecAttrAccount];
+            NSString *password = [[NSString alloc] initWithData:resultDict[(__bridge id)kSecValueData]
+                                                       encoding:NSUTF8StringEncoding];
+
+            namesAndPasswords.add ({[user UTF8String], [password UTF8String]});
+            
+            return namesAndPasswords;
             
     }
 
