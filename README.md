@@ -1,7 +1,7 @@
 # yum_CredentialManager
 Yum Audio Credential Manager
 
-A JUCE module wrapping Keychain on macOS and CredentialManager on Windows for easy App Credential management. 
+A JUCE module wrapping Keychain on macOS (/iOS untested) and CredentialManager on Windows for easy App Credential management. 
 
 Currently only a single password per application is supported. 
 
