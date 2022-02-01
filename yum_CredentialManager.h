@@ -9,9 +9,9 @@
   website:         https://yum-audio.com
   license:          MIT
 
-  dependencies:     juce_core 
-  OSXFrameworks:
-  iOSFrameworks:
+  dependencies:     juce_core
+  OSXFrameworks: Security
+  iOSFrameworks: Security
   linuxLibs:
   mingwLibs:
 
@@ -41,7 +41,8 @@ struct AppCredentials
     
     /// returns an arry containing all credentials that could be found for the app
     /// 1st argument is callback on "no item found", if not defined a standard error will popup if no item can be found for the app
-    static Array<UsernameAndPassword> getAllStoredUsernamesAndPasswords (std::function<void ()> onNoneFound = nullptr);
+    ///  callback return defines if password should be read again after callback finished
+    static Array<UsernameAndPassword> getAllStoredUsernamesAndPasswords (std::function<bool ()> onNoneFound = nullptr);
 };
 
 };

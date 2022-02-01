@@ -68,7 +68,7 @@ bool AppCredentials::usernameAndPasswordCredentialsExist ()
     }
 }
 
-Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernamesAndPasswords (std::function<void ()> onNoneFound)
+Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernamesAndPasswords (std::function<bool ()> onNoneFound)
 {
     JUCE_AUTORELEASEPOOL
     {
@@ -95,7 +95,7 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
 //            CFMutableArrayRef result;
         
             CFDictionaryRef result = nil;
-        OSStatus sts = SecItemCopyMatching((__bridge CFDictionaryRef)keychainItem, (CFTypeRef *)&result);
+            OSStatus sts = SecItemCopyMatching((__bridge CFDictionaryRef)keychainItem, (CFTypeRef *)&result);
              
             NSLog(@"Error Code: %d", (int)sts);
              
@@ -103,7 +103,27 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
             {
                 if (onNoneFound != nullptr)
                 {
-                    MessageManager::callAsync (onNoneFound);
+                    bool tryAgain = onNoneFound ();
+                    if (tryAgain)
+                    {
+                        result=nil;
+                        OSStatus rtr = SecItemCopyMatching((__bridge CFDictionaryRef)keychainItem, (CFTypeRef *)&result);
+                         
+                        NSLog(@"Retry Error Code: %d", (int)rtr);
+                         
+                        if(rtr == noErr)
+                        {
+                            
+                        }
+                        else
+                        {
+                            return {};
+                        }
+                    }
+                    else
+                    {
+                        return {};
+                    }
                 }
                 else
                 {
@@ -111,9 +131,11 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
                                                        .withMessage("1. Please enter your username and password.\n\n2. Click \"Login\".\n\n3. When prompted, select to save password.")
                                                        .withButton("OK");
                     AlertWindow::showAsync (options, nullptr);
+                    
+                    return {};
                 }
 
-                return {};
+           
             }
         
         Array<UsernameAndPassword> namesAndPasswords;
