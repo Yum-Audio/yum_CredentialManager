@@ -5,6 +5,6 @@ A JUCE module wrapping Keychain on macOS and CredentialManager on Windows for ea
 
 Currently only a single password per application is supported. 
 
-#TODO: 
+# TODO: 
 - Implement retrieval of multiple passwords on both platforms. "getAllStoredUsernamesAndPasswords ()" only retrieves one entry on both platforms currently.
 - Clean up, especially the Obj-C file for Mac
