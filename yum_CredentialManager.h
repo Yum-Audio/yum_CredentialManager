@@ -1,17 +1,17 @@
 /***********************************************************************************
  BEGIN_JUCE_MODULE_DECLARATION
 
-  ID:                  yum_CredentialManager
+  ID:               yum_CredentialManager
   vendor:           Yum Audio
   version:          1.0.0
   name:             Yum Audio - Credential Manager
-  description:    A wrapper for Keychain on macOS and ??? on Windows
-  website:         https://yum-audio.com
+  description:      A wrapper for Keychain on macOS and ??? on Windows
+  website:          https://yum-audio.com
   license:          MIT
 
-  dependencies:     juce_core
-  OSXFrameworks: Security
-  iOSFrameworks: Security
+  dependencies:    juce_core
+  OSXFrameworks:   Security
+  iOSFrameworks:   Security
   linuxLibs:
   mingwLibs:
 
@@ -26,8 +26,6 @@ namespace YumAudio
 {
 
 using namespace juce;
-
-
 
 struct AppCredentials
 {
