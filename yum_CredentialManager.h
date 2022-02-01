@@ -5,7 +5,7 @@
   vendor:           Yum Audio
   version:          1.0.0
   name:             Yum Audio - Credential Manager
-  description:      A wrapper for Keychain on macOS and ??? on Windows
+  description:      A wrapper for Keychain on macOS and CredentialManager on Windows
   website:          https://yum-audio.com
   license:          MIT
 

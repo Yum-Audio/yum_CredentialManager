@@ -12,7 +12,7 @@ using namespace YumAudio;
 bool AppCredentials::createUsernameAndPasswordEntry (const AppCredentials::UsernameAndPassword& creds)
 {
     std::wstring username (creds.first.toWideCharPointer ());
-	const auto password = creds.second.toRawUTF8 ();
+    const auto password = creds.second.toRawUTF8 ();
     std::wstring targetName ( (String(ProjectInfo::projectName) + "/account").toWideCharPointer () );
   
     DWORD cbCreds = 1 + strlen (password);
