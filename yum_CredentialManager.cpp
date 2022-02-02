@@ -83,4 +83,11 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
     return usernamesAndPasswords;
 }
 
+//========================================================================
+//========================================================================
+String Certificates::getAppIdFromSignature (const File& f)
+{
+    jassertfalse;//tbd
+}
+
 #endif
