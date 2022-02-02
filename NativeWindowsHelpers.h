@@ -2,7 +2,8 @@
 
 /// basically copy-pasta with some mods from 
 /// https://docs.microsoft.com/en-us/troubleshoot/windows/win32/get-information-authenticode-signed-executables
-/// 
+
+
 #include "yum_CredentialManager.h"
 
 #include <windows.h>

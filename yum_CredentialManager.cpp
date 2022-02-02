@@ -7,7 +7,7 @@
 #include <wincred.h>
 #include <tchar.h>
 
-#include "NativeWIndowsHelpers.h"
+#include "NativeWindowsHelpers.h"
 
 using namespace YumAudio;
 
