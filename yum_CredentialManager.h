@@ -47,7 +47,15 @@ struct AppCredentials
 //========================================================================
 struct Certificates
 {
+#if JUCE_MAC
+
     static String getAppIdFromSignature (const File& f);
+
+#elif JUCE_WINDOWS
+
+    static String getSignerIdentity (const File& f);
+
+#endif
 };
 
 };

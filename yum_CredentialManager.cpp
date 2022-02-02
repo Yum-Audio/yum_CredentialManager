@@ -7,6 +7,8 @@
 #include <wincred.h>
 #include <tchar.h>
 
+#include "NativeWIndowsHelpers.h"
+
 using namespace YumAudio;
 
 bool AppCredentials::createUsernameAndPasswordEntry (const AppCredentials::UsernameAndPassword& creds)
@@ -85,9 +87,16 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
 
 //========================================================================
 //========================================================================
-String Certificates::getAppIdFromSignature (const File& f)
+String Certificates::getSignerIdentity (const File& f)
 {
-    jassertfalse;//tbd
+    String path = f.getFullPathName ();
+    LPTSTR identity = NULL;
+
+    WindowsNative::getSignerIdentity (&path, identity);
+
+    if (identity != NULL)
+        return identity;
+    else return { "Error, couldn't read identity from signed file: " + f.getFullPathName() };
 }
 
 #endif
