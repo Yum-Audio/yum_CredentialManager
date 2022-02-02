@@ -9,8 +9,10 @@
 #define Rectangle CarbonDummyRect
 #define Component CarbonDummyComp
 #include <CoreFoundation/CoreFoundation.h>
+#include <CoreFoundation/CFUtilities.h>
 #include <Foundation/Foundation.h>
 #include <Security/Security.h>
+#include <Security/SecCode.h>
 #undef Point
 #undef Rectangle
 #undef Component
@@ -168,5 +170,43 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
     jassertfalse;
     return {};
 }
+
+//========================================================================
+//========================================================================
+
+
+String Certificates::getAppIdFromSignature (const File& f)
+{
+ 
+    String appId;
+    JUCE_AUTORELEASEPOOL
+    {
+        SecStaticCodeRef code;
+        CFURLRef url = (CFURLRef)[NSURL fileURLWithPath:[[NSString alloc] initWithUTF8String:f.getFullPathName().toUTF8()]];
+        auto result = SecStaticCodeCreateWithPath (url, kSecCSDefaultFlags, &code);
+        
+        if (result == noErr)
+        {
+            CFDictionaryRef info;
+            auto infoResult = SecCodeCopySigningInformation (code, kSecCSRequirementInformation, &info);
+            
+            if (infoResult == noErr)
+            {
+                appId = [[(id)info objectForKey:@"identifier"] UTF8String];
+            }
+            else
+            {
+                appId = "Error getting certificate info";
+            }
+        }
+        else
+        {
+            appId = "Error getting static code reference";
+        }
+    }
+
+    return appId;
+}
+
 
 #endif //end JUCE_MAC

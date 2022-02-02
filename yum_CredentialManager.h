@@ -43,4 +43,11 @@ struct AppCredentials
     static Array<UsernameAndPassword> getAllStoredUsernamesAndPasswords (std::function<bool ()> onNoneFound = nullptr);
 };
 
+//========================================================================
+//========================================================================
+struct Certificates
+{
+    static String getAppIdFromSignature (const File& f);
+};
+
 };
