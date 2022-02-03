@@ -17,16 +17,23 @@
 
  END_JUCE_MODULE_DECLARATION
 ***********************************************************************************/
-
 #pragma once
-
 #include <JuceHeader.h>
+
+/** Config: RunHeadless
+          If set to Enabled,  automatic dialogs will be disabled getAllStoredUsernamesAndPasswords (). This allows for usage of the Credential Manager in CommandLine applications and Plug-Ins
+*/
+#ifndef RunHeadless
+#define RunHeadless 0
+#endif
 
 namespace YumAudio
 {
 
 using namespace juce;
 
+//========================================================================
+//========================================================================
 struct AppCredentials
 {
     typedef std::pair<String, String> UsernameAndPassword;

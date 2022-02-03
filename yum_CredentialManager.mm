@@ -1,6 +1,6 @@
 #include "yum_CredentialManager.h"
 
-/// For examples see:
+/// For Keychain examples see:
 /// https://es1015.tistory.com/243
 
 #if JUCE_MAC || JUCE_IOS
@@ -129,11 +129,12 @@ Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernames
                 }
                 else
                 {
+#if ! RunHeadless
                     auto options = MessageBoxOptions ().withTitle ("No saved password found")
                                                        .withMessage("1. Please enter your username and password.\n\n2. Click \"Login\".\n\n3. When prompted, select to save password.")
                                                        .withButton("OK");
                     AlertWindow::showAsync (options, nullptr);
-                    
+#endif
                     return {};
                 }
 
