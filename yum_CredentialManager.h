@@ -47,15 +47,15 @@ struct AppCredentials
 //========================================================================
 struct Certificates
 {
-#if JUCE_MAC
-
-    static String getAppIdFromSignature (const File& f);
-
-#elif JUCE_WINDOWS
-
+    /// on Mac this will return the 10-letter Apple TeamID associated with a certificate (e.g. "SFXXXXXXXT")
+    /// on Windows this will return the human readable name of the signer (e.g. "Yum Audio GmbH & Co. KG")
     static String getSignerIdentity (const File& f);
 
+#if JUCE_MAC
+    /// returns the app id imprinted on a certificate (e.g. com.YumAudio.Spread)
+    static String getAppIdFromSignature (const File& f);
 #endif
+    
 };
 
 };
