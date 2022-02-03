@@ -12,7 +12,6 @@ A JUCE module wrapping different tools/APIs for easy App Credential management.
 - Currently only a single password per application is supported. 
 
 ### Certificates:
-- getSignerIdentity () is currently Windows only
 - getAppIdFromSignature () is currently Mac only
 
 ## TODO: 
@@ -20,5 +19,4 @@ A JUCE module wrapping different tools/APIs for easy App Credential management.
 - Clean up, especially the Obj-C file for Mac
 - Add a standard alert for Username/Password retrieval on Windows if "onNoneFound == nullptr", like in Mac implementation
 - Android & Linux support
-- Certificates::getSignerIdentity () for Mac
 - Certificate::getAppIdFromSignature () for Windows
