@@ -259,107 +259,23 @@ String AppCredentials::getPasswordForUsername (const Username& username)
 
 Array<UsernameAndPassword> AppCredentials::getAllStoredUsernamesAndPasswords (std::function<bool ()> onNoneFound)
 {
-    JUCE_AUTORELEASEPOOL
+    Array<UsernameAndPassword> creds;
+    const auto entries = getAllAvailableEntries();
+    
+    if (entries.isEmpty () && onNoneFound != nullptr)
     {
-      
-//        NSMutableDictionary *query = [NSMutableDictionary dictionary];
-//        auto serviceName = [[NSString alloc] initWithUTF8String: ProjectInfo::projectName];
-//
-//            //Populate it with the data and the attributes we want to use.
-//
-//        query[(__bridge id)kSecClass] = (__bridge id)kSecClassGenericPassword; // We specify what kind of keychain item this is.
-//        query[(__bridge id)kSecAttrService] = serviceName;
-//        query[(__bridge id)kSecReturnRef] = (__bridge id)kCFBooleanTrue;
-//        query[@"kSecMatchLimit"] = (__bridge id)kSecMatchLimitAll;
-        
-//        query[(__bridge id)kSecReturnRef] = (__bridge id)kCFBooleanTrue;
-//            keychainItem[(__bridge id)kSecAttrAccessible] = (__bridge id)kSecAttrAccessibleAfterFirstUnlock; // This item can only be accessed when the user unlocks the device.
-//        query[(__bridge id)kSecAttrAccessible] = (__bridge id)kSecAttrAccessibleAfterFirstUnlock;
-           
-             
-            //Check if this keychain item already exists.
-//
-        
-//
-//            query[(__bridge id)kSecReturnAttributes] = (__bridge id)kCFBooleanTrue;
-     
-            //@TODO: this still needs figuring out... how to get all results for the given app?
-            //For now we're only fetching the first result it can find. This is fine for a single app user in most cases
-      
-//        CFArrayRef result = nil;
-//
-////            CFDictionaryRef result = nil;
-//        OSStatus sts = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&result);
-//
-//        NSLog(@"Error Code: %d", (int)sts);
-//
-//        if(sts != noErr)
-//        {
-//            if (onNoneFound != nullptr)
-//            {
-//                bool tryAgain = onNoneFound ();
-//                if (tryAgain)
-//                {
-//                    result=nil;
-//                    OSStatus rtr = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&result);
-//
-//                    NSLog(@"Retry Error Code: %d", (int)rtr);
-//
-//                    if(rtr == noErr)
-//                    {
-//
-//                    }
-//                    else
-//                    {
-//                        return {};
-//                    }
-//                }
-//                else
-//                {
-//                    return {};
-//                }
-//            }
-//            else
-//            {
-//#if ! RunHeadless
-//                auto options = MessageBoxOptions ().withTitle ("No saved password found")
-//                                                    .withMessage("1. Please enter your username and password.\n\n2. Click \"Login\".\n\n3. When prompted, select to save password.")
-//                                                    .withButton("OK");
-//                AlertWindow::showAsync (options, nullptr);
-//#endif
-//                return {};
-//            }
-//
-//
-//        }
-//
-//        Array<UsernameAndPassword> namesAndPasswords;
-//
-//        CFIndex c = CFArrayGetCount (result);
-//        DBG ("Num entries: " << c );
-//
-//        for (CFIndex i = 0; i < c; i++)
-//        {
-//            auto resultDict = CFArrayGetValueAtIndex(result, i);
-//
-//
-//        }
-////
-//
-
-//            NSDictionary *resultDict = (NSDictionary *)result;
-//            NSString *user = resultDict[(__bridge id)kSecAttrAccount];
-//            NSString *password = [[NSString alloc] initWithData:resultDict[(__bridge id)kSecValueData]
-//                                                       encoding:NSUTF8StringEncoding];
-//
-//            namesAndPasswords.add ({[user UTF8String], [password UTF8String]});
-            
-//            return namesAndPasswords;
-            
+        auto tryAgain = onNoneFound ();
+        if (tryAgain)
+            return getAllStoredUsernamesAndPasswords (onNoneFound);
+    }
+    
+    for (auto& e : entries)
+    {
+        const auto pass = getPasswordForUsername (e);
+        creds.add ({e, pass});
     }
 
-    jassertfalse;
-    return {};
+    return creds;
 }
 
 //========================================================================
