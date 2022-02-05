@@ -23,7 +23,7 @@
 
 using namespace YumAudio;
 
-bool AppCredentials::updateCredentialEntry (const UsernameAndPassword& creds)
+bool AppCredentials::updateEntry (const UsernameAndPassword& creds)
 {
     const auto username = creds.first;
     const auto pw = creds.second;
@@ -143,7 +143,7 @@ bool AppCredentials::updateCredentialEntry (const UsernameAndPassword& creds)
     }
 }
 
-bool AppCredentials::anyCredentialsExist ()
+bool AppCredentials::anyExist ()
 {
     JUCE_AUTORELEASEPOOL
     {

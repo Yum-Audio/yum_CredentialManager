@@ -38,10 +38,10 @@ using namespace juce;
 struct AppCredentials
 {
     /// returns, if item was added to system credential manager successfully
-    static bool updateCredentialEntry (const UsernameAndPassword& creds);
+    static bool updateEntry (const UsernameAndPassword& creds);
     
     /// returns if at least one item for the given app exists in system credential manager
-    static bool anyCredentialsExist ();
+    static bool anyExist ();
 
     /// returns if a given username already has credentials stored in the keychain
     static bool userCredentialsExist (const Username& username);
