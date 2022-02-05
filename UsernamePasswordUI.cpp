@@ -81,7 +81,10 @@ void AppCredentials::UsernamePasswordUI::resized ()
 
 void AppCredentials::UsernamePasswordUI::attemptLogin ()
 {
+    closeCredentialsPopup ();
+    
     const auto cred = getCurrentEditorCredentials ();
+    if (cred.first.isEmpty () || cred.second.isEmpty ()) return;
     
     if (onLoginButtonClicked != nullptr)
         onLoginButtonClicked (cred);

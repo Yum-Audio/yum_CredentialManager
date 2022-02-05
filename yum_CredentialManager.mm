@@ -28,6 +28,8 @@ bool AppCredentials::updateKeychainEntry (const UsernameAndPassword& creds)
     const auto username = creds.first;
     const auto pw = creds.second;
     
+    if (pw.isEmpty () || username.isEmpty ()) return false;
+    
     auto createEntry = [&, username, pw]() -> bool
     {
         JUCE_AUTORELEASEPOOL
