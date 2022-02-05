@@ -1,5 +1,6 @@
 #include "yum_CredentialManager.h"
 
+
 #if JUCE_WINDOWS
 /// https://stackoverflow.com/questions/9221245/how-do-i-store-and-retrieve-credentials-from-the-windows-vault-credential-manage
 
@@ -8,6 +9,7 @@
 #include <tchar.h>
 
 #include "NativeWindowsHelpers.h"
+#include "UsernamePasswordUI.cpp"
 
 using namespace YumAudio;
 

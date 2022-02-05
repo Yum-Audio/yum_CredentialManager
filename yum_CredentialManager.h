@@ -19,6 +19,7 @@
 ***********************************************************************************/
 #pragma once
 #include <JuceHeader.h>
+#include "Types.h"
 
 /** Config: RunHeadless
           If set to Enabled,  automatic dialogs will be disabled getAllStoredUsernamesAndPasswords (). This allows for usage of the Credential Manager in CommandLine applications and Plug-Ins
@@ -36,18 +37,31 @@ using namespace juce;
 //========================================================================
 struct AppCredentials
 {
-    typedef std::pair<String, String> UsernameAndPassword;
-   
     /// returns, if item was added to system credential manager successfully
-    static bool createUsernameAndPasswordEntry (const UsernameAndPassword& creds);
+    static bool updateKeychainEntry (const UsernameAndPassword& creds);
     
     /// returns if at least one item for the given app exists in system credential manager
-    static bool usernameAndPasswordCredentialsExist ();
+    static bool anyCredentialsExist ();
+
+    /// returns if a given username already has credentials stored in the keychain
+    static bool userCredentialsExist (const Username& username);
+    
+    /// returns a list of all Username/Password items in Keychain/Credential Manager, but only the Usernames.
+    /// Use a username to call getPasswordForUsername (const String& username)
+    static StringArray getAllAvailableEntries (const String& filter = {});
+
+    /// returns a password to a username that was found via getAllAvailableEntries ()
+    static String getPasswordForUsername (const Username& username);
     
     /// returns an arry containing all credentials that could be found for the app
     /// 1st argument is callback on "no item found", if not defined a standard error will popup if no item can be found for the app
-    ///  callback return defines if password should be read again after callback finished
+    /// callback return defines if password should be read again after callback finished
+    /// !!! Depending on the keychain settings, this might require MULTIPLE password entries on Mac. It might be safer to just use getAllAvailableEntries () and call getPasswordForUsername () with a specific entry only
     static Array<UsernameAndPassword> getAllStoredUsernamesAndPasswords (std::function<bool ()> onNoneFound = nullptr);
+    
+    class UsernamePasswordUI;
+    #include "UsernamePasswordUI.h"
+    
 };
 
 //========================================================================
