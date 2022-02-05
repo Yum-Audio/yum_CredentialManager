@@ -23,7 +23,7 @@
 
 using namespace YumAudio;
 
-bool AppCredentials::updateKeychainEntry (const UsernameAndPassword& creds)
+bool AppCredentials::updateCredentialEntry (const UsernameAndPassword& creds)
 {
     const auto username = creds.first;
     const auto pw = creds.second;

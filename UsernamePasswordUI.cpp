@@ -4,7 +4,9 @@
 
 using namespace YumAudio;
 
-AppCredentials::UsernamePasswordUI::UsernamePasswordUI ()
+typedef AppCredentials::UsernamePasswordUI UsernamePasswordUI;
+
+UsernamePasswordUI::UsernamePasswordUI ()
 {
     addAndMakeVisible (loginButton);
     loginButton.onClick = [&]()
@@ -50,17 +52,17 @@ AppCredentials::UsernamePasswordUI::UsernamePasswordUI ()
     passwordEditor.onReturnKey = onEnter;
 }
 
-UsernameAndPassword AppCredentials::UsernamePasswordUI::getCurrentEditorCredentials ()
+UsernameAndPassword UsernamePasswordUI::getCurrentEditorCredentials ()
 {
     return { usernameEditor.getText (), passwordEditor.getText () };
 }
 
-void AppCredentials::UsernamePasswordUI::resetPasswordEditor ()
+void UsernamePasswordUI::resetPasswordEditor ()
 {
     passwordEditor.setText ("", dontSendNotification);
 }
 
-void AppCredentials::UsernamePasswordUI::loginButtonClicked (const UsernameAndPassword& credentials)
+void UsernamePasswordUI::loginButtonClicked (const UsernameAndPassword& credentials)
 {
     /// You'll have to either make a subclass of AppCredentials::UsernamePasswordUI and overwrite this method
     /// >>> OR <<<
@@ -70,7 +72,7 @@ void AppCredentials::UsernamePasswordUI::loginButtonClicked (const UsernameAndPa
     jassertfalse;
 }
 
-void AppCredentials::UsernamePasswordUI::resized ()
+void UsernamePasswordUI::resized ()
 {
     auto area = getLocalBounds ();
     auto elementHeight = area.getHeight () / elements.size ();
@@ -79,7 +81,7 @@ void AppCredentials::UsernamePasswordUI::resized ()
         e->setBounds (area.removeFromTop (elementHeight).reduced (2));
 }
 
-void AppCredentials::UsernamePasswordUI::attemptLogin ()
+void UsernamePasswordUI::attemptLogin ()
 {
     closeCredentialsPopup ();
     
@@ -91,7 +93,7 @@ void AppCredentials::UsernamePasswordUI::attemptLogin ()
     else loginButtonClicked (cred);
 }
 
-void AppCredentials::UsernamePasswordUI::updateCredentialsPopup (Component* source)
+void UsernamePasswordUI::updateCredentialsPopup (Component* source)
 {
     closeCredentialsPopup ();
     
@@ -111,7 +113,7 @@ void AppCredentials::UsernamePasswordUI::updateCredentialsPopup (Component* sour
     }
 }
 
-void AppCredentials::UsernamePasswordUI::fillEditorsForKeychainUser (const Username& user)
+void UsernamePasswordUI::fillEditorsForKeychainUser (const Username& user)
 {
     const Password pass = AppCredentials::getPasswordForUsername (user);
     if (pass.isNotEmpty ())
@@ -124,7 +126,7 @@ void AppCredentials::UsernamePasswordUI::fillEditorsForKeychainUser (const Usern
     attemptLogin ();
 }
 
-void AppCredentials::UsernamePasswordUI::closeCredentialsPopup ()
+void UsernamePasswordUI::closeCredentialsPopup ()
 {
     PopupMenu::dismissAllActiveMenus ();
     credentialsPopup.reset ();
