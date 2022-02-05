@@ -9,7 +9,7 @@ AppCredentials::UsernamePasswordUI::UsernamePasswordUI ()
     addAndMakeVisible (loginButton);
     loginButton.onClick = [&]()
     {
-        handleLoginButtonClick ();
+        attemptLogin ();
     };
     
     auto credPopupFromUsername = [&]()
@@ -26,19 +26,28 @@ AppCredentials::UsernamePasswordUI::UsernamePasswordUI ()
         credentialsPopup.reset ();
     };
     
+    auto onEnter = [&]()
+    {
+        attemptLogin ();
+    };
+    
     addAndMakeVisible (usernameEditor);
+    usernameEditor.setEscapeAndReturnKeysConsumed(false);
     usernameEditor.setTextToShowWhenEmpty ("Username",
                                            Colours::grey);
     usernameEditor.onTextChange = credPopupFromUsername;
     usernameEditor.onMouseDown = credPopupFromUsername;
     usernameEditor.onFocusLost = onEditorLostFocus;
+    usernameEditor.onReturnKey = onEnter;
     
     addAndMakeVisible (passwordEditor);
     passwordEditor.setPasswordCharacter ('*');
+    passwordEditor.setEscapeAndReturnKeysConsumed(false);
     passwordEditor.setTextToShowWhenEmpty ("Password",
                                            Colours::grey);
     passwordEditor.onMouseDown = credPopupFromPassword;
     passwordEditor.onFocusLost = onEditorLostFocus;
+    passwordEditor.onReturnKey = onEnter;
 }
 
 UsernameAndPassword AppCredentials::UsernamePasswordUI::getCurrentEditorCredentials ()
@@ -70,7 +79,7 @@ void AppCredentials::UsernamePasswordUI::resized ()
         e->setBounds (area.removeFromTop (elementHeight).reduced (2));
 }
 
-void AppCredentials::UsernamePasswordUI::handleLoginButtonClick ()
+void AppCredentials::UsernamePasswordUI::attemptLogin ()
 {
     const auto cred = getCurrentEditorCredentials ();
     
@@ -96,7 +105,6 @@ void AppCredentials::UsernamePasswordUI::updateCredentialsPopup (Component* sour
                              .withTargetComponent (source)
                              .withPreferredPopupDirection (PopupMenu::Options::PopupDirection::downwards);
         credentialsPopup->showMenuAsync (options);
-        
     }
 }
 
@@ -110,6 +118,7 @@ void AppCredentials::UsernamePasswordUI::fillEditorsForKeychainUser (const Usern
     }
     
     closeCredentialsPopup ();
+    attemptLogin ();
 }
 
 void AppCredentials::UsernamePasswordUI::closeCredentialsPopup ()

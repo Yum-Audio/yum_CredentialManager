@@ -51,7 +51,7 @@ private:
     
     std::unique_ptr<PopupMenu> credentialsPopup;
     
-    void handleLoginButtonClick ();
+    void attemptLogin ();
     void updateCredentialsPopup (Component* source);
     void fillEditorsForKeychainUser (const Username& user);
     void closeCredentialsPopup ();
