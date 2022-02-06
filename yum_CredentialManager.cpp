@@ -1,5 +1,6 @@
 #include "yum_CredentialManager.h"
 
+
 #if JUCE_WINDOWS
 /// https://stackoverflow.com/questions/9221245/how-do-i-store-and-retrieve-credentials-from-the-windows-vault-credential-manage
 
@@ -8,81 +9,174 @@
 #include <tchar.h>
 
 #include "NativeWindowsHelpers.h"
+#include "UsernamePasswordUI.cpp"
 
 using namespace YumAudio;
 
-bool AppCredentials::createUsernameAndPasswordEntry (const AppCredentials::UsernameAndPassword& creds)
+bool AppCredentials::updateEntry(const UsernameAndPassword& creds)
 {
-    std::wstring username (creds.first.toWideCharPointer ());
-    const auto password = creds.second.toRawUTF8 ();
-    std::wstring targetName ( (String(ProjectInfo::projectName) + "/account").toWideCharPointer () );
+    const auto username = creds.first;
+    const auto pw = creds.second;
+
+    if (pw.isEmpty() || username.isEmpty()) return false;
+
+    auto createEntry = [&, username, pw]() -> bool
+    {
+        std::wstring uname (username.toWideCharPointer ());
+        const auto password = pw.toRawUTF8 ();
+        std::wstring targetName ( (String(ProjectInfo::projectName) + "/" + username).toWideCharPointer());
+    
+        DWORD cbCreds = 1 + strlen (password);
+
+
+        CREDENTIALW cred = { 0 };
+        cred.Type = CRED_TYPE_GENERIC;
+        cred.TargetName = &targetName[0];
+        cred.CredentialBlobSize = cbCreds;
+        cred.CredentialBlob = (LPBYTE)password;
+        cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
+        cred.UserName = &uname[0];
+
+        BOOL ok = ::CredWriteW(&cred, 0);
+        wprintf(L"CredWrite() - errno %d\n", ok ? 0 : ::GetLastError());
+
+        return ok;
+    };
+
+    auto credentialsExist = userCredentialsExist(username);
+    if (!credentialsExist)
+    {
+#if RunHeadless
+        return createEntry();
+#else
+        String credClientName = "Keychain";
+#if JUCE_WINDOWS
+        credClientName = "Credential Manager";
+#endif
+        auto o = MessageBoxOptions().withTitle("Save login data in " + credClientName + "? ")
+            .withMessage("Do you want to store your login data in " + credClientName + "?")
+            .withButton("Yes").withButton("No");
+
+        AlertWindow::showAsync(o, [&, createEntry](int result)
+        {
+            if (result == 1)
+                createEntry();
+        });
+
+        return true;
+#endif
+
+    }
+    else //credentials exist, check if we have to update
+    {
+        const auto currentlyStoredPassword = getPasswordForUsername(username);
+        if (currentlyStoredPassword != pw)
+        {
+            //update
+            auto updatePassword = [&, pw, username, createEntry]() -> bool
+            {
+                return createEntry();
+            };
+
+#if RunHeadless
+            return updatePassword();
+#else
+            auto o = MessageBoxOptions().withTitle("It seems your password has changed")
+                .withMessage("Do you want to update your saved login?")
+                .withButton("Yes").withButton("No");
+
+            AlertWindow::showAsync(o, [&, updatePassword](int result)
+            {
+                if (result == 1)
+                    updatePassword();
+            });
+
+            return true;
+#endif
+
+        }
+
+        return false;
+    }
+}
+
+bool AppCredentials::anyExist()
+{
+    return ! getAllAvailableEntries ().isEmpty ();
+}
+
+bool AppCredentials::userCredentialsExist(const Username& username)
+{
+    return getPasswordForUsername (username).isNotEmpty ();
+}
+
+StringArray AppCredentials::getAllAvailableEntries (const String& filter)
+{
+    StringArray entries;
+    PCREDENTIALA* creds;
+    DWORD count;
+    std::string targetName ((String(ProjectInfo::projectName) + "/" + filter + "*").toRawUTF8());
+    LPCSTR fltr = targetName.c_str();
+    BOOL ok { ::CredEnumerateA (fltr, NULL, &count, &creds) };
+    if (!ok)
+    {
+        return {};
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        auto cred = creds[i];
+        auto credTarget = cred->TargetName;
+
+        if (String(credTarget).contains(ProjectInfo::projectName))
+            entries.add(cred->UserName);
+    }
+
+    CredFree(creds);
   
-    DWORD cbCreds = 1 + strlen (password);
-
-
-    CREDENTIALW cred = { 0 };
-    cred.Type = CRED_TYPE_GENERIC;
-    cred.TargetName = &targetName[0];
-    cred.CredentialBlobSize = cbCreds;
-    cred.CredentialBlob = (LPBYTE)password;
-    cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
-    cred.UserName = &username[0];
-
-    BOOL ok = ::CredWriteW(&cred, 0);
-    wprintf(L"CredWrite() - errno %d\n", ok ? 0 : ::GetLastError());
-
-    return ok;
+    return entries;
 }
 
-bool AppCredentials::usernameAndPasswordCredentialsExist()
+String AppCredentials::getPasswordForUsername (const Username& username)
 {
-    std::wstring targetName((String(ProjectInfo::projectName) + "/account").toWideCharPointer());
-
-    PCREDENTIALW pcred;
-    BOOL ok = ::CredReadW (&targetName[0], CRED_TYPE_GENERIC, 0, &pcred);
-    wprintf(L"CredRead() - errno %d\n", ok ? 0 : ::GetLastError());
-
-    ::CredFree(pcred);
-
-    return ok;
-}
-
-Array<AppCredentials::UsernameAndPassword> AppCredentials::getAllStoredUsernamesAndPasswords(std::function<bool()> onNoneFound)
-{
-    Array < AppCredentials::UsernameAndPassword > usernamesAndPasswords;
-
-    std::wstring targetName((String(ProjectInfo::projectName) + "/account").toWideCharPointer());
-
+    std::wstring targetName((String(ProjectInfo::projectName) + "/" + username).toWideCharPointer());
+    
     PCREDENTIALW pcred;
     BOOL ok = ::CredReadW(&targetName[0], CRED_TYPE_GENERIC, 0, &pcred);
     wprintf(L"CredRead() - errno %d\n", ok ? 0 : ::GetLastError());
-  
-    if (!ok && onNoneFound != nullptr)
-    {
-        auto tryAgain = onNoneFound();
-        if (!tryAgain)
-        {
-            return {};
-        }
-        else
-        {
-            ok = ::CredReadW(&targetName[0], CRED_TYPE_GENERIC, 0, &pcred);
-        }
-    }
+    
+    if (!ok)
+         return {};
+
+    jassert(String(pcred->UserName) == username);
 
     wprintf(L"Read username = '%s', password='%S' (%d bytes)\n",
         pcred->UserName, (char*)pcred->CredentialBlob, pcred->CredentialBlobSize);
-
+    
     String pw((char*)pcred->CredentialBlob, pcred->CredentialBlobSize);
-    String username(pcred->UserName);
+   
+    return pw;
+}
 
-    /// TODO: How to retrieve all entries for a given app?
+Array<UsernameAndPassword> AppCredentials::getAllStoredUsernamesAndPasswords (std::function<bool()> onNoneFound)
+{
+    Array<UsernameAndPassword> creds;
+    const auto entries = getAllAvailableEntries();
 
-    usernamesAndPasswords.add({ username, pw });
-    // must free memory allocated by CredRead()!
-    ::CredFree(pcred);
+    if (entries.isEmpty() && onNoneFound != nullptr)
+    {
+        auto tryAgain = onNoneFound();
+        if (tryAgain)
+            return getAllStoredUsernamesAndPasswords(onNoneFound);
+    }
 
-    return usernamesAndPasswords;
+    for (auto& e : entries)
+    {
+        const auto pass = getPasswordForUsername(e);
+        creds.add({ e, pass });
+    }
+
+    return creds;
 }
 
 //========================================================================
