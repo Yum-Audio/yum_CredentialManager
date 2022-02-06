@@ -10,6 +10,9 @@ A JUCE module wrapping different tools/APIs for easy App Credential management.
 
 **Please note, that this code is not yet production-ready. This is a work in development and everything is subject to changes.** 
 
+### Username/Password credentials:
+- Ready to go. 
+- Inlcuding a Username/Password entry UI element, which offers an auto-complete popup (like in webforms)
 
 ### Certificates:
 - getAppIdFromSignature () is currently Mac only
