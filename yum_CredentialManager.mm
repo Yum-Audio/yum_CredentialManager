@@ -1,5 +1,5 @@
 #include "yum_CredentialManager.h"
-
+#include "yum_CredentialManager.cpp"
 /// For Keychain examples see:
 /// https://es1015.tistory.com/243
 /// https://cpp.hotexamples.com/examples/-/-/SecItemCopyMatching/cpp-secitemcopymatching-function-examples.html
@@ -19,7 +19,6 @@
 #undef Component
 
 #include <JuceHeader.h>
-#include "UsernamePasswordUI.cpp"
 
 using namespace YumAudio;
 

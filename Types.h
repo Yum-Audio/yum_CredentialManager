@@ -1,6 +1,8 @@
 #pragma once
 #include <JuceHeader.h>
 
+using namespace juce;
+
 namespace YumAudio
 {
     typedef String Username;

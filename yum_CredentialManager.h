@@ -59,8 +59,10 @@ struct AppCredentials
     /// !!! Depending on the keychain settings, this might require MULTIPLE password entries on Mac. It might be safer to just use getAllAvailableEntries () and call getPasswordForUsername () with a specific entry only
     static Array<UsernameAndPassword> getAllStoredUsernamesAndPasswords (std::function<bool ()> onNoneFound = nullptr);
     
+#if ! RunHeadless
     class UsernamePasswordUI;
     #include "UsernamePasswordUI.h"
+#endif
     
 };
 
