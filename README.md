@@ -21,4 +21,4 @@ A JUCE module wrapping different tools/APIs for easy App Credential management.
 - Clean up
 - DRY up code between Mac/Windows, there are several identical functions in the .mm/.cpp file respectively, that get managed by OS defines. Only OS calls need different implementations, all juce calls can get combined
 - Android & Linux support
-- Certificate::getAppIdFromSignature () for Windows
+- Certificate::getAppIdFromSignature () for Windows (if even possible)
