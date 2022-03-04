@@ -19,7 +19,7 @@ class UsernamePasswordUI : public juce::Component
 {
 public:
     UsernamePasswordUI ();
-    
+    ~UsernamePasswordUI () override;
     /// if a function is defined, then virtual function loginButtonClicked won't get a call
     std::function<void (const UsernameAndPassword&)> onLoginButtonClicked { nullptr };
     
@@ -29,6 +29,8 @@ public:
     /// after you're finished with the password editor you should reset it for good measure
     void resetPasswordEditor ();
     
+    /// pass a raw pointer in here, the UsernamePasswordUI class takes ownership and deletes
+    void setPopupLookAndFeel (LookAndFeel_V4* laf);
     
 protected:
     /// will only be called if onLoginButtonClicked == nullptr
@@ -49,6 +51,7 @@ private:
         &loginButton
     };
     
+    std::unique_ptr<LookAndFeel_V4> popupLaf;
     std::unique_ptr<PopupMenu> credentialsPopup;
     
     void attemptLogin ();

@@ -25,7 +25,7 @@ UsernamePasswordUI::UsernamePasswordUI ()
     
     auto onEditorLostFocus = [&]()
     {
-        credentialsPopup.reset ();
+        closeCredentialsPopup ();
     };
     
     auto onEnter = [&]()
@@ -52,6 +52,11 @@ UsernamePasswordUI::UsernamePasswordUI ()
     passwordEditor.onReturnKey = onEnter;
 }
 
+UsernamePasswordUI::~UsernamePasswordUI ()
+{
+    closeCredentialsPopup ();
+}
+
 UsernameAndPassword UsernamePasswordUI::getCurrentEditorCredentials ()
 {
     return { usernameEditor.getText (), passwordEditor.getText () };
@@ -60,6 +65,12 @@ UsernameAndPassword UsernamePasswordUI::getCurrentEditorCredentials ()
 void UsernamePasswordUI::resetPasswordEditor ()
 {
     passwordEditor.setText ("", dontSendNotification);
+}
+
+void UsernamePasswordUI::setPopupLookAndFeel (LookAndFeel_V4* laf)
+{
+    closeCredentialsPopup ();
+    popupLaf.reset (laf);
 }
 
 void UsernamePasswordUI::loginButtonClicked (const UsernameAndPassword& credentials)
@@ -103,12 +114,16 @@ void UsernamePasswordUI::updateCredentialsPopup (Component* source)
     {
         credentialsPopup = std::make_unique<PopupMenu>();
         
+        if (popupLaf != nullptr)
+            credentialsPopup->setLookAndFeel (popupLaf.get ());
+        
         for (auto& e : entries)
             credentialsPopup->addItem (e, [&, e] () { fillEditorsForKeychainUser (e); });
         
         const auto options = PopupMenu::Options ()
                              .withTargetComponent (source)
-                             .withPreferredPopupDirection (PopupMenu::Options::PopupDirection::downwards);
+                             .withPreferredPopupDirection (PopupMenu::Options::PopupDirection::downwards)
+                              .withMinimumWidth (source->getWidth());
         credentialsPopup->showMenuAsync (options);
     }
 }
@@ -129,5 +144,7 @@ void UsernamePasswordUI::fillEditorsForKeychainUser (const Username& user)
 void UsernamePasswordUI::closeCredentialsPopup ()
 {
     PopupMenu::dismissAllActiveMenus ();
+    if (credentialsPopup)
+        credentialsPopup->setLookAndFeel (nullptr);
     credentialsPopup.reset ();
 }
