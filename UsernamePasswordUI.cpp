@@ -64,6 +64,7 @@ UsernameAndPassword UsernamePasswordUI::getCurrentEditorCredentials ()
 
 void UsernamePasswordUI::resetPasswordEditor ()
 {
+    reEnableEditors ();
     passwordEditor.setText ("", dontSendNotification);
 }
 
@@ -92,8 +93,19 @@ void UsernamePasswordUI::resized ()
         e->setBounds (area.removeFromTop (elementHeight).reduced (2));
 }
 
+void UsernamePasswordUI::reEnableEditors ()
+{
+    usernameEditor.setEnabled (true);
+    passwordEditor.setEnabled (true);
+    loginButton.setEnabled (true);
+}
+
 void UsernamePasswordUI::attemptLogin ()
 {
+    usernameEditor.setEnabled (false);
+    passwordEditor.setEnabled (false);
+    loginButton.setEnabled (false);
+    
     closeCredentialsPopup ();
     
     const auto cred = getCurrentEditorCredentials ();

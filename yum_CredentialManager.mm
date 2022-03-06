@@ -247,7 +247,8 @@ String AppCredentials::getPasswordForUsername (const Username& username)
         }
         else
         {
-            jassertfalse;
+//            jassertfalse;
+            DBG ("User denied access or other error");
             return {};
         }
     }

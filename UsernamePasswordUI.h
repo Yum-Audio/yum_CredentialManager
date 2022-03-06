@@ -32,6 +32,9 @@ public:
     /// pass a raw pointer in here, the UsernamePasswordUI class takes ownership and deletes
     void setPopupLookAndFeel (LookAndFeel_V4* laf);
     
+    /// call this after a login attempt has finished, to make the UI elements accessible again
+    void reEnableEditors ();
+    
 protected:
     /// will only be called if onLoginButtonClicked == nullptr
     virtual void loginButtonClicked (const UsernameAndPassword& credentials);
