@@ -35,16 +35,16 @@ public:
     /// call this after a login attempt has finished, to make the UI elements accessible again
     void reEnableEditors ();
     
-protected:
-    /// will only be called if onLoginButtonClicked == nullptr
-    virtual void loginButtonClicked (const UsernameAndPassword& credentials);
-    
+    /// publically accessible members for styling, debugging, etc...
     TextButton loginButton { "Login" };
     UnamePWEditor usernameEditor;
     UnamePWEditor passwordEditor;
     
-    void resized () override;
+protected:
+    /// will only be called if onLoginButtonClicked == nullptr
+    virtual void loginButtonClicked (const UsernameAndPassword& credentials);
     
+    void resized () override;
     
 private:
     juce::Array<juce::Component*> elements
