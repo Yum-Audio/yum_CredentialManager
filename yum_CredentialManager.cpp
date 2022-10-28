@@ -145,6 +145,8 @@ String AppCredentials::getPasswordForUsername (const Username& username)
     
     PCREDENTIALW pcred;
     BOOL ok = ::CredReadW(&targetName[0], CRED_TYPE_GENERIC, 0, &pcred);
+    
+    if (!ok)
     wprintf(L"CredRead() - errno %d\n", ok ? 0 : ::GetLastError());
     
     if (!ok)
@@ -152,12 +154,19 @@ String AppCredentials::getPasswordForUsername (const Username& username)
 
     jassert(String(pcred->UserName) == username);
 
+    if (!ok)
     wprintf(L"Read username = '%s', password='%S' (%d bytes)\n",
         pcred->UserName, (char*)pcred->CredentialBlob, pcred->CredentialBlobSize);
     
     String pw((char*)pcred->CredentialBlob, pcred->CredentialBlobSize);
    
     return pw;
+}
+
+bool AppCredentials::removeCredential(const Username& username)
+{
+    std::wstring targetName((String(ProjectInfo::projectName) + "/" + username).toWideCharPointer());
+    return ::CredDeleteW(&targetName[0], CRED_TYPE_GENERIC, 0);
 }
 
 Array<UsernameAndPassword> AppCredentials::getAllStoredUsernamesAndPasswords (std::function<bool()> onNoneFound)
