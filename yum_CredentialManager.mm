@@ -278,6 +278,11 @@ Array<UsernameAndPassword> AppCredentials::getAllStoredUsernamesAndPasswords (st
     return creds;
 }
 
+bool AppCredentials::removeCredential(const Username& username)
+{
+	jassertfalse; //tbd
+}
+
 //========================================================================
 //========================================================================
 
@@ -345,5 +350,7 @@ String Certificates::getSignerIdentity (const File& f)
 
     return signerIdentity;
 }
+
+
 
 #endif //end JUCE_MAC

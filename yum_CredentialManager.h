@@ -18,6 +18,7 @@
  END_JUCE_MODULE_DECLARATION
 ***********************************************************************************/
 #pragma once
+
 #include <JuceHeader.h>
 #include "Types.h"
 
