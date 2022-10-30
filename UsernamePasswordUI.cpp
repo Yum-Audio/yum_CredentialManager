@@ -16,11 +16,12 @@ UsernamePasswordUI::UsernamePasswordUI ()
     
     auto credPopupFromUsername = [&]()
     {
-        updateCredentialsPopup (&usernameEditor);
+		updateCredentialsPopup(&usernameEditor);
+        
     };
     auto credPopupFromPassword = [&]()
     {
-        updateCredentialsPopup (&passwordEditor);
+		updateCredentialsPopup(&passwordEditor);
     };
     
     auto onEditorLostFocus = [&]()
@@ -56,6 +57,7 @@ UsernamePasswordUI::~UsernamePasswordUI ()
 {
     closeCredentialsPopup ();
 }
+
 
 UsernameAndPassword UsernamePasswordUI::getCurrentEditorCredentials ()
 {
@@ -120,23 +122,31 @@ void UsernamePasswordUI::updateCredentialsPopup (Component* source)
 {
     closeCredentialsPopup ();
     
-    auto entries = AppCredentials::getAllAvailableEntries (usernameEditor.getText ());
+	tasks.add (new ThreadedTask ([&, uname = usernameEditor.getText (), source](ThreadedTask* task)
+	{
+		const auto entries = AppCredentials::getAllAvailableEntries (uname);
 
-    if ( ! entries.isEmpty () )
-    {
-        PopupMenu m;
-        
-		m.setLookAndFeel (popupLaf.get ());
-        
-        for (auto& e : entries)
-            m.addItem (e, [&, e] () { fillEditorsForKeychainUser (e); });
-        
-        const auto options = PopupMenu::Options ()
-                             .withTargetComponent (source)
-                             .withPreferredPopupDirection (PopupMenu::Options::PopupDirection::downwards)
-                              .withMinimumWidth (source->getWidth());
-        m.showMenuAsync (options);
-    }
+		MessageManager::callAsync ([&, entries, task, source] ()
+		{
+			if ( ! entries.isEmpty () )
+			{
+				PopupMenu m;
+				
+				m.setLookAndFeel (popupLaf.get ());
+				
+				for (auto& e : entries)
+					m.addItem (e, [&, e] () { fillEditorsForKeychainUser (e); });
+				
+				const auto options = PopupMenu::Options ()
+									.withTargetComponent (source)
+									.withPreferredPopupDirection (PopupMenu::Options::PopupDirection::downwards)
+									.withMinimumWidth (source->getWidth());
+				m.showMenuAsync (options);
+			}
+
+			tasks.removeObject (task);
+		});
+	}));
 }
 
 void UsernamePasswordUI::fillEditorsForKeychainUser (const Username& user)

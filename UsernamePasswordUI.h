@@ -61,6 +61,22 @@ private:
     void fillEditorsForKeychainUser (const Username& user);
     void closeCredentialsPopup ();
     
+	class ThreadedTask : private Thread
+	{
+	public:
+		ThreadedTask (std::function<void (ThreadedTask*)> task) : Thread ("ThreadedTask"), task (task) { startThread (); }
+	
+	private:
+		std::function<void (ThreadedTask*)> task;
+		void run () override
+		{
+			task (this);
+		}
+		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ThreadedTask)
+
+	};
+	OwnedArray<ThreadedTask, CriticalSection> tasks;
+	
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (UsernamePasswordUI)
 };
 
