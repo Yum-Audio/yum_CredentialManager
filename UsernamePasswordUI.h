@@ -55,7 +55,6 @@ private:
     };
     
     std::unique_ptr<LookAndFeel_V4> popupLaf;
-    std::unique_ptr<PopupMenu> credentialsPopup;
     
     void attemptLogin ();
     void updateCredentialsPopup (Component* source);

@@ -124,19 +124,18 @@ void UsernamePasswordUI::updateCredentialsPopup (Component* source)
 
     if ( ! entries.isEmpty () )
     {
-        credentialsPopup = std::make_unique<PopupMenu>();
+        PopupMenu m;
         
-        if (popupLaf != nullptr)
-            credentialsPopup->setLookAndFeel (popupLaf.get ());
+		m.setLookAndFeel (popupLaf.get ());
         
         for (auto& e : entries)
-            credentialsPopup->addItem (e, [&, e] () { fillEditorsForKeychainUser (e); });
+            m.addItem (e, [&, e] () { fillEditorsForKeychainUser (e); });
         
         const auto options = PopupMenu::Options ()
                              .withTargetComponent (source)
                              .withPreferredPopupDirection (PopupMenu::Options::PopupDirection::downwards)
                               .withMinimumWidth (source->getWidth());
-        credentialsPopup->showMenuAsync (options);
+        m.showMenuAsync (options);
     }
 }
 
@@ -156,7 +155,5 @@ void UsernamePasswordUI::fillEditorsForKeychainUser (const Username& user)
 void UsernamePasswordUI::closeCredentialsPopup ()
 {
     PopupMenu::dismissAllActiveMenus ();
-    if (credentialsPopup)
-        credentialsPopup->setLookAndFeel (nullptr);
-    credentialsPopup.reset ();
+
 }
