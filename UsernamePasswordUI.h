@@ -65,8 +65,10 @@ private:
 	{
 	public:
 		ThreadedTask (std::function<void (ThreadedTask*)> task) : Thread ("ThreadedTask"), task (task) { startThread (); }
-	
+		~ThreadedTask () override  { ignalThreadShouldExit (); stopThread (5000); }
+
 	private:
+		friend class UsernamePasswordUI;
 		std::function<void (ThreadedTask*)> task;
 		void run () override
 		{
@@ -77,6 +79,7 @@ private:
 	};
 	OwnedArray<ThreadedTask, CriticalSection> tasks;
 	
+	JUCE_DECLARE_WEAK_REFERENCEABLE (UsernamePasswordUI)
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (UsernamePasswordUI)
 };
 

@@ -122,12 +122,16 @@ void UsernamePasswordUI::updateCredentialsPopup (Component* source)
 {
     closeCredentialsPopup ();
     
-	tasks.add (new ThreadedTask ([&, uname = usernameEditor.getText (), source](ThreadedTask* task)
+	WeakReference<UsernamePasswordUI> weakThis (this);
+	tasks.add (new ThreadedTask ([&, uname = usernameEditor.getText (), source, weakThis](ThreadedTask* task)
 	{
 		const auto entries = AppCredentials::getAllAvailableEntries (uname);
+		if (task->threadShouldExit () || weakThis.get () == nullptr || entries.size () == 0) return;
 
-		MessageManager::callAsync ([&, entries, task, source] ()
+		MessageManager::callAsync ([&, entries, task, source, weakThis] ()
 		{
+			if (weakThis.get () == nullptr || source == nullptr) return;
+
 			if ( ! entries.isEmpty () )
 			{
 				PopupMenu m;
