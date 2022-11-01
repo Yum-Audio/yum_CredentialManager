@@ -65,7 +65,7 @@ private:
 	{
 	public:
 		ThreadedTask (std::function<void (ThreadedTask*)> task) : Thread ("ThreadedTask"), task (task) { startThread (); }
-		~ThreadedTask () override  { ignalThreadShouldExit (); stopThread (5000); }
+		~ThreadedTask () override  { signalThreadShouldExit (); stopThread (5000); }
 
 	private:
 		friend class UsernamePasswordUI;
