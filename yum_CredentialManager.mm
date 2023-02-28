@@ -68,13 +68,11 @@ bool AppCredentials::updateEntry (const UsernameAndPassword& creds)
         auto o = MessageBoxOptions ().withTitle("Save login data in Keychain?")
                                      .withMessage ("Do you want to store your login data in Keychain?")
                                      .withButton ("Yes").withButton ("No");
-
-        AlertWindow::showAsync (o, [&, createEntry](int result)
-        {
-            if (result == 1)
-                createEntry ();
-        });
-        
+  		const auto result = AlertWindow::show (o);
+     
+        if (result == 1)
+            createEntry ();
+    
         return true;
 #endif
 
