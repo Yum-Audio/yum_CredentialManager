@@ -349,64 +349,109 @@ String Certificates::getSignerIdentity (const File& f)
     return signerIdentity;
 }
 
-juce::String Certificates::getCertificate (const juce::File& f)
+
+juce::MemoryBlock Certificates::getCertificate(const juce::File& f)
 {
-    juce::String certDetails;
+    juce::MemoryBlock certData;
     JUCE_AUTORELEASEPOOL
     {
         SecStaticCodeRef code = nullptr;
         CFURLRef url = CFURLCreateWithFileSystemPath(nullptr, (CFStringRef)f.getFullPathName().toCFString(), kCFURLPOSIXPathStyle, false);
-        auto result = SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &code);
-        CFRelease(url);
-
-        if (result == noErr && code != nullptr)
+        if (SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &code) == noErr && code != nullptr)
         {
             CFDictionaryRef info = nullptr;
-            auto infoResult = SecCodeCopySigningInformation(code, kSecCSSigningInformation, &info);
-            CFRelease(code);
-
-            if (infoResult == noErr && info != nullptr)
+            if (SecCodeCopySigningInformation(code, kSecCSSigningInformation, &info) == noErr && info != nullptr)
             {
                 CFArrayRef certArray = (CFArrayRef)CFDictionaryGetValue(info, kSecCodeInfoCertificates);
-                if (certArray != nullptr)
+                if (certArray != nullptr && CFArrayGetCount(certArray) > 0)
                 {
-                    for (CFIndex i = 0; i < CFArrayGetCount(certArray); ++i)
+                    SecCertificateRef certRef = (SecCertificateRef)CFArrayGetValueAtIndex(certArray, 0);
+                    CFDataRef certDataRef = SecCertificateCopyData(certRef);
+                    if (certDataRef != nullptr)
                     {
-                        SecCertificateRef certRef = (SecCertificateRef)CFArrayGetValueAtIndex(certArray, i);
-
-                        // Convert certificate to data
-                        CFDataRef certData = SecCertificateCopyData(certRef);
-                        if (certData != nullptr)
-                        {
-                            // Convert the binary data to a base64-encoded string
-                            juce::String pemCert = "-----BEGIN CERTIFICATE-----\n";
-                            pemCert += juce::Base64::toBase64((const uint8*)CFDataGetBytePtr(certData), CFDataGetLength(certData));
-                            pemCert += "\n-----END CERTIFICATE-----\n";
-
-                            certDetails += pemCert;
-                            CFRelease(certData);
-                        }
+                        certData.replaceWith(CFDataGetBytePtr(certDataRef), (size_t)CFDataGetLength(certDataRef));
+                        CFRelease(certDataRef);
                     }
-                }
-                else
-                {
-                    certDetails = "No certificates found";
                 }
                 CFRelease(info);
             }
-            else
-            {
-                certDetails = "Error retrieving signing information";
-            }
+            CFRelease(code);
         }
-        else
-        {
-            certDetails = "Error creating static code reference";
-        }
+        CFRelease(url);
     }
-
-    return certDetails;
+    return certData;
 }
 
+bool Certificates::compareCertificates(const juce::MemoryBlock& cert1, const juce::MemoryBlock& cert2)
+{
+    JUCE_AUTORELEASEPOOL
+    {
+        CFDataRef certData1 = CFDataCreate(nullptr, (const UInt8*)cert1.getData(), (CFIndex)cert1.getSize());
+        CFDataRef certData2 = CFDataCreate(nullptr, (const UInt8*)cert2.getData(), (CFIndex)cert2.getSize());
+
+        SecCertificateRef secCert1 = SecCertificateCreateWithData(nullptr, certData1);
+        SecCertificateRef secCert2 = SecCertificateCreateWithData(nullptr, certData2);
+
+        bool isEqual = false;
+        if (secCert1 != nullptr && secCert2 != nullptr)
+        {
+            CFDataRef certDataRef1 = SecCertificateCopyData(secCert1);
+            CFDataRef certDataRef2 = SecCertificateCopyData(secCert2);
+
+            isEqual = CFEqual(certDataRef1, certDataRef2);
+
+            CFRelease(certDataRef1);
+            CFRelease(certDataRef2);
+        }
+
+        if (secCert1) CFRelease(secCert1);
+        if (secCert2) CFRelease(secCert2);
+        CFRelease(certData1);
+        CFRelease(certData2);
+
+        return isEqual;
+    }
+}
+
+bool Certificates::isCertificateValid(const juce::MemoryBlock& cert)
+{
+    JUCE_AUTORELEASEPOOL
+    {
+        CFDataRef certDataRef = CFDataCreate(nullptr, (const UInt8*)cert.getData(), (CFIndex)cert.getSize());
+        SecCertificateRef secCert = SecCertificateCreateWithData(nullptr, certDataRef);
+        CFRelease(certDataRef);
+
+        if (secCert == nullptr)
+            return false;
+
+        SecPolicyRef policy;
+
+        #if JUCE_DEBUG
+            policy = SecPolicyCreateBasicX509();
+        #else
+            policy = SecPolicyCreateWithProperties(kSecPolicyAppleCodeSigning, nullptr);
+        #endif
+
+        SecTrustRef trust;
+        OSStatus status = SecTrustCreateWithCertificates(secCert, policy, &trust);
+
+        if (status != errSecSuccess)
+        {
+            CFRelease(secCert);
+            CFRelease(policy);
+            return false;
+        }
+
+        SecTrustResultType trustResult;
+        status = SecTrustEvaluate(trust, &trustResult);
+
+        CFRelease(secCert);
+        CFRelease(policy);
+        CFRelease(trust);
+
+        return (status == errSecSuccess) && 
+               (trustResult == kSecTrustResultUnspecified || trustResult == kSecTrustResultProceed);
+    }
+}
 
 #endif //end JUCE_MAC
