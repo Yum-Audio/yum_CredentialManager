@@ -204,4 +204,9 @@ String Certificates::getSignerIdentity (const File& f)
     else return { "Error, couldn't read identity from signed file: " + f.getFullPathName() };
 }
 
+String Certificates::getCertificate (const File& f)
+{
+    jassertfalse; //TBD
+}
+
 #endif

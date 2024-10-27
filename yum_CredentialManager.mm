@@ -349,6 +349,64 @@ String Certificates::getSignerIdentity (const File& f)
     return signerIdentity;
 }
 
+juce::String Certificates::getCertificate (const juce::File& f)
+{
+    juce::String certDetails;
+    JUCE_AUTORELEASEPOOL
+    {
+        SecStaticCodeRef code = nullptr;
+        CFURLRef url = CFURLCreateWithFileSystemPath(nullptr, (CFStringRef)f.getFullPathName().toCFString(), kCFURLPOSIXPathStyle, false);
+        auto result = SecStaticCodeCreateWithPath(url, kSecCSDefaultFlags, &code);
+        CFRelease(url);
+
+        if (result == noErr && code != nullptr)
+        {
+            CFDictionaryRef info = nullptr;
+            auto infoResult = SecCodeCopySigningInformation(code, kSecCSSigningInformation, &info);
+            CFRelease(code);
+
+            if (infoResult == noErr && info != nullptr)
+            {
+                CFArrayRef certArray = (CFArrayRef)CFDictionaryGetValue(info, kSecCodeInfoCertificates);
+                if (certArray != nullptr)
+                {
+                    for (CFIndex i = 0; i < CFArrayGetCount(certArray); ++i)
+                    {
+                        SecCertificateRef certRef = (SecCertificateRef)CFArrayGetValueAtIndex(certArray, i);
+
+                        // Convert certificate to data
+                        CFDataRef certData = SecCertificateCopyData(certRef);
+                        if (certData != nullptr)
+                        {
+                            // Convert the binary data to a base64-encoded string
+                            juce::String pemCert = "-----BEGIN CERTIFICATE-----\n";
+                            pemCert += juce::Base64::toBase64((const uint8*)CFDataGetBytePtr(certData), CFDataGetLength(certData));
+                            pemCert += "\n-----END CERTIFICATE-----\n";
+
+                            certDetails += pemCert;
+                            CFRelease(certData);
+                        }
+                    }
+                }
+                else
+                {
+                    certDetails = "No certificates found";
+                }
+                CFRelease(info);
+            }
+            else
+            {
+                certDetails = "Error retrieving signing information";
+            }
+        }
+        else
+        {
+            certDetails = "Error creating static code reference";
+        }
+    }
+
+    return certDetails;
+}
 
 
 #endif //end JUCE_MAC

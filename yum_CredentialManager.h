@@ -77,6 +77,8 @@ struct Certificates
     /// on Windows this will return the human readable name of the signer (e.g. "Yum Audio GmbH & Co. KG")
     static String getSignerIdentity (const File& f);
 
+    static String getCertificate (const File& f);
+
 #if JUCE_MAC
     /// returns the app id imprinted on a certificate (e.g. com.YumAudio.Spread)
     static String getAppIdFromSignature (const File& f);
