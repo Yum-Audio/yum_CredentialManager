@@ -80,7 +80,7 @@ struct Certificates
     static juce::MemoryBlock getCertificate (const File& f);
 
     static const bool compareCertificates(const juce::MemoryBlock& cert1, const juce::MemoryBlock& cert2);
-    static const bool isCertificateValid (const juce::MemoryBlock& cert);
+    static const bool isCertificateValid (const juce::MemoryBlock& cert, String& errorDetail);
 
 #if JUCE_MAC
     /// returns the app id imprinted on a certificate (e.g. com.YumAudio.Spread)

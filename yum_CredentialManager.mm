@@ -413,7 +413,7 @@ const bool Certificates::compareCertificates(const juce::MemoryBlock& cert1, con
     }
 }
 
-const bool Certificates::isCertificateValid(const juce::MemoryBlock& cert)
+const bool Certificates::isCertificateValid(const juce::MemoryBlock& cert, String& errorDetail)
 {
     JUCE_AUTORELEASEPOOL
     {
@@ -442,15 +442,63 @@ const bool Certificates::isCertificateValid(const juce::MemoryBlock& cert)
             return false;
         }
 
+        #if JUCE_DEBUG
+            if (Permissions::hasAdminPermissions ())
+            {
+                // Allow network fetch in debug mode, in case intermediate certs need to be fetched. Admin process probably has no access to user keychain
+                SecTrustSetNetworkFetchAllowed(trust, true);
+
+                // Disable revocation checks for debug
+                SecTrustSetPolicies(trust, policy);
+            }
+        #endif
+
+        // Evaluate trust
         SecTrustResultType trustResult;
         status = SecTrustEvaluate(trust, &trustResult);
+
+        const auto result = (status == errSecSuccess) && 
+            (trustResult == kSecTrustResultUnspecified || trustResult == kSecTrustResultProceed);
+
+        if (!result)   
+        {
+            errorDetail = trustResult == kSecTrustResultRecoverableTrustFailure ? "Recoverable Trust Failure" : 
+                            trustResult == kSecTrustResultFatalTrustFailure ? "Fatal Trust Failure" :
+                            trustResult == kSecTrustResultInvalid ? "Invalid Trust Result" :
+                            trustResult == kSecTrustResultOtherError ? "Other Error" : "Unknown Error";
+
+            // Check if certificate dates are valid
+            CFDictionaryRef certValues = nullptr;
+            CFArrayRef keys = CFArrayCreate(nullptr, (const void**)&kSecOIDX509V1ValidityNotBefore, 1, &kCFTypeArrayCallBacks);
+            certValues = SecCertificateCopyValues(secCert, keys, nullptr);
+            CFRelease(keys);
+
+            if (certValues)
+            {
+                CFDictionaryRef notBeforeDict = (CFDictionaryRef)CFDictionaryGetValue(certValues, kSecOIDX509V1ValidityNotBefore);
+                CFDictionaryRef notAfterDict = (CFDictionaryRef)CFDictionaryGetValue(certValues, kSecOIDX509V1ValidityNotAfter);
+
+                if (notBeforeDict && notAfterDict) {
+                    CFDateRef notBeforeDate = (CFDateRef)CFDictionaryGetValue(notBeforeDict, kSecPropertyKeyValue);
+                    CFDateRef notAfterDate = (CFDateRef)CFDictionaryGetValue(notAfterDict, kSecPropertyKeyValue);
+
+                    CFAbsoluteTime currentTime = CFAbsoluteTimeGetCurrent();
+                    if (notBeforeDate && CFDateGetAbsoluteTime(notBeforeDate) > currentTime) {
+                        errorDetail = "Certificate Not Yet Valid";
+                    } else if (notAfterDate && CFDateGetAbsoluteTime(notAfterDate) < currentTime) {
+                        errorDetail = "Certificate Expired";
+                    }
+                }
+
+                CFRelease(certValues);
+            }
+        }
 
         CFRelease(secCert);
         CFRelease(policy);
         CFRelease(trust);
 
-        return (status == errSecSuccess) && 
-               (trustResult == kSecTrustResultUnspecified || trustResult == kSecTrustResultProceed);
+        return result;
     }
 }
 
