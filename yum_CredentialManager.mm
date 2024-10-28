@@ -382,7 +382,7 @@ juce::MemoryBlock Certificates::getCertificate(const juce::File& f)
     return certData;
 }
 
-bool Certificates::compareCertificates(const juce::MemoryBlock& cert1, const juce::MemoryBlock& cert2)
+const bool Certificates::compareCertificates(const juce::MemoryBlock& cert1, const juce::MemoryBlock& cert2)
 {
     JUCE_AUTORELEASEPOOL
     {
@@ -413,7 +413,7 @@ bool Certificates::compareCertificates(const juce::MemoryBlock& cert1, const juc
     }
 }
 
-bool Certificates::isCertificateValid(const juce::MemoryBlock& cert)
+const bool Certificates::isCertificateValid(const juce::MemoryBlock& cert)
 {
     JUCE_AUTORELEASEPOOL
     {
@@ -452,6 +452,11 @@ bool Certificates::isCertificateValid(const juce::MemoryBlock& cert)
         return (status == errSecSuccess) && 
                (trustResult == kSecTrustResultUnspecified || trustResult == kSecTrustResultProceed);
     }
+}
+
+const bool Permissions::hasAdminPermissions () 
+{
+    return geteuid() == 0;
 }
 
 #endif //end JUCE_MAC

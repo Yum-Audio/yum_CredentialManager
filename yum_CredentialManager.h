@@ -79,14 +79,22 @@ struct Certificates
 
     static juce::MemoryBlock getCertificate (const File& f);
 
-    static bool compareCertificates(const juce::MemoryBlock& cert1, const juce::MemoryBlock& cert2);
-    static bool isCertificateValid (const juce::MemoryBlock& cert);
-    
+    static const bool compareCertificates(const juce::MemoryBlock& cert1, const juce::MemoryBlock& cert2);
+    static const bool isCertificateValid (const juce::MemoryBlock& cert);
+
 #if JUCE_MAC
     /// returns the app id imprinted on a certificate (e.g. com.YumAudio.Spread)
     static String getAppIdFromSignature (const File& f);
 #endif
     
 };
+
+//========================================================================
+//========================================================================
+struct Permissions
+{
+    static const bool hasAdminPermissions ();
+};
+
 
 };
